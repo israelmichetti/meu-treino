@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Treino">
+<title>Treino</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1c1c1c;
+    --border: #2a2a2a;
+    --accent: #e8ff47;
+    --accent2: #ff6b35;
+    --text: #f0f0f0;
+    --muted: #666;
+    --danger: #ff4444;
+    --success: #4ade80;
+    --radius: 16px;
+  }
+
+- { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘DM Sans’, sans-serif;
+min-height: 100vh;
+min-height: -webkit-fill-available;
+overflow-x: hidden;
+}
+
+/* NAV */
+.nav {
+position: fixed; bottom: 0; left: 0; right: 0;
+background: var(–surface);
+border-top: 1px solid var(–border);
+display: flex;
+z-index: 100;
+padding-bottom: env(safe-area-inset-bottom);
+}
+.nav-btn {
+flex: 1; background: none; border: none; color: var(–muted);
+padding: 14px 0 10px;
+font-family: ‘DM Sans’, sans-serif;
+font-size: 10px; font-weight: 500;
+cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;
+transition: color .2s;
+}
+.nav-btn.active { color: var(–accent); }
+.nav-btn svg { width: 22px; height: 22px; }
+
+/* SCREENS */
+.screen { display: none; padding: 20px 16px 100px; max-width: 480px; margin: 0 auto; }
+.screen.active { display: block; }
+
+/* HEADER */
+.page-header { margin-bottom: 24px; padding-top: 16px; }
+.page-title {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 42px; letter-spacing: 2px;
+line-height: 1;
+}
+.page-title span { color: var(–accent); }
+.page-sub { color: var(–muted); font-size: 13px; margin-top: 4px; }
+
+/* DAYS */
+.days-scroll {
+display: flex; gap: 8px; overflow-x: auto;
+padding-bottom: 4px; margin-bottom: 24px;
+scrollbar-width: none;
+}
+.days-scroll::-webkit-scrollbar { display: none; }
+.day-chip {
+flex-shrink: 0; background: var(–surface); border: 1px solid var(–border);
+border-radius: 50px; padding: 8px 18px;
+font-size: 13px; font-weight: 500; color: var(–muted);
+cursor: pointer; transition: all .2s;
+white-space: nowrap;
+}
+.day-chip.active {
+background: var(–accent); color: #000; border-color: var(–accent);
+font-weight: 600;
+}
+.day-chip.has-workout { border-color: var(–accent); color: var(–accent); }
+
+/* EXERCISE CARD */
+.exercise-card {
+background: var(–surface); border: 1px solid var(–border);
+border-radius: var(–radius); margin-bottom: 12px; overflow: hidden;
+}
+.exercise-header {
+display: flex; align-items: center; justify-content: space-between;
+padding: 14px 16px; cursor: pointer;
+}
+.exercise-name {
+font-weight: 600; font-size: 15px; flex: 1;
+}
+.exercise-name-input {
+background: none; border: none; color: var(–text);
+font-family: ‘DM Sans’, sans-serif; font-size: 15px; font-weight: 600;
+flex: 1; outline: none; width: 100%;
+}
+.exercise-name-input::placeholder { color: var(–muted); }
+.chevron { transition: transform .2s; color: var(–muted); }
+.chevron.open { transform: rotate(180deg); }
+
+.sets-container { padding: 0 16px 14px; }
+.sets-header {
+display: grid; grid-template-columns: 32px 1fr 1fr 1fr 36px;
+gap: 8px; font-size: 11px; color: var(–muted);
+margin-bottom: 8px; text-align: center;
+}
+.set-row {
+display: grid; grid-template-columns: 32px 1fr 1fr 1fr 36px;
+gap: 8px; align-items: center; margin-bottom: 8px;
+}
+.set-num {
+width: 28px; height: 28px; border-radius: 50%;
+background: var(–surface2); display: flex; align-items: center; justify-content: center;
+font-size: 12px; font-weight: 600; color: var(–muted);
+}
+.set-num.done { background: var(–accent); color: #000; }
+.set-input {
+background: var(–surface2); border: 1px solid var(–border);
+border-radius: 10px; padding: 8px 6px;
+color: var(–text); font-family: ‘DM Sans’, sans-serif;
+font-size: 14px; font-weight: 500; text-align: center;
+outline: none; width: 100%;
+transition: border-color .2s;
+}
+.set-input:focus { border-color: var(–accent); }
+.set-done-btn {
+background: var(–surface2); border: 1px solid var(–border);
+border-radius: 10px; width: 36px; height: 36px;
+color: var(–muted); cursor: pointer; font-size: 16px;
+display: flex; align-items: center; justify-content: center;
+transition: all .2s;
+}
+.set-done-btn.done { background: var(–accent); border-color: var(–accent); color: #000; }
+
+.add-set-btn {
+background: none; border: 1px dashed var(–border);
+border-radius: 10px; padding: 8px; width: 100%;
+color: var(–muted); font-family: ‘DM Sans’, sans-serif;
+font-size: 13px; cursor: pointer; margin-top: 4px;
+transition: all .2s;
+}
+.add-set-btn:hover { border-color: var(–accent); color: var(–accent); }
+
+.exercise-actions {
+display: flex; gap: 8px; padding: 0 16px 14px; justify-content: flex-end;
+}
+.del-exercise-btn {
+background: var(–surface2); border: 1px solid var(–border);
+border-radius: 10px; padding: 8px 14px;
+color: var(–danger); font-size: 13px; cursor: pointer;
+font-family: ‘DM Sans’, sans-serif; font-weight: 500;
+}
+
+/* ADD EXERCISE */
+.add-exercise-btn {
+width: 100%; background: none; border: 1px dashed var(–border);
+border-radius: var(–radius); padding: 16px;
+color: var(–muted); font-family: ‘DM Sans’, sans-serif;
+font-size: 14px; cursor: pointer; margin-top: 4px;
+transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.add-exercise-btn:hover { border-color: var(–accent); color: var(–accent); }
+
+/* TIMER CARD */
+.timer-card {
+background: var(–surface); border: 1px solid var(–border);
+border-radius: var(–radius); padding: 16px;
+margin-bottom: 20px;
+}
+.timer-card-top {
+display: flex; align-items: center; justify-content: space-between;
+margin-bottom: 14px;
+}
+.timer-card-label {
+font-family: ‘Bebas Neue’, sans-serif; font-size: 16px;
+letter-spacing: 3px; color: var(–muted);
+}
+.timer-presets { display: flex; gap: 6px; }
+.timer-preset {
+background: var(–surface2); border: 1px solid var(–border);
+border-radius: 50px; padding: 5px 12px;
+color: var(–muted); font-size: 12px; font-weight: 500;
+cursor: pointer; transition: all .2s; font-family: ‘DM Sans’, sans-serif;
+}
+.timer-preset.sel { border-color: var(–accent); color: var(–accent); }
+
+.timer-card-main {
+display: flex; align-items: center; gap: 16px;
+}
+.timer-ring {
+position: relative; width: 80px; height: 80px; flex-shrink: 0;
+}
+.timer-ring svg { transform: rotate(-90deg); }
+.timer-ring-bg { stroke: var(–surface2); }
+.timer-ring-progress { stroke: var(–accent); stroke-linecap: round; transition: stroke-dashoffset .9s linear, stroke .3s; }
+.timer-ring-center {
+position: absolute; inset: 0; display: flex;
+align-items: center; justify-content: center;
+}
+.timer-display {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 26px; line-height: 1; letter-spacing: 2px;
+color: var(–accent); transition: color .3s;
+}
+.timer-display.warning { color: var(–accent2); }
+.timer-display.done-color { color: var(–success); }
+
+.timer-btns { display: flex; gap: 8px; flex: 1; }
+.timer-action {
+flex: 1; background: var(–surface2); border: 1px solid var(–border);
+border-radius: 12px; padding: 12px 8px;
+color: var(–text); font-family: ‘DM Sans’, sans-serif;
+font-size: 13px; font-weight: 600; cursor: pointer;
+transition: all .2s; text-align: center;
+}
+.timer-action.primary { background: var(–accent); border-color: var(–accent); color: #000; }
+
+/* HISTORY */
+.history-card {
+background: var(–surface); border: 1px solid var(–border);
+border-radius: var(–radius); padding: 16px; margin-bottom: 12px;
+}
+.history-date {
+font-size: 11px; color: var(–muted); margin-bottom: 8px;
+text-transform: uppercase; letter-spacing: 1px;
+}
+.history-day-label {
+font-family: ‘Bebas Neue’, sans-serif; font-size: 22px;
+letter-spacing: 1px; color: var(–accent); margin-bottom: 12px;
+}
+.history-exercise { margin-bottom: 10px; }
+.history-ex-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.history-sets { display: flex; flex-wrap: wrap; gap: 6px; }
+.history-set-badge {
+background: var(–surface2); border-radius: 8px;
+padding: 4px 10px; font-size: 12px; color: var(–muted);
+}
+.history-set-badge.pr {
+background: rgba(232,255,71,.1); border: 1px solid var(–accent);
+color: var(–accent);
+}
+
+/* PROGRESS */
+.progress-picker {
+background: var(–surface); border: 1px solid var(–border);
+border-radius: var(–radius); padding: 14px 16px; margin-bottom: 16px;
+color: var(–text); font-family: ‘DM Sans’, sans-serif;
+font-size: 14px; width: 100%; outline: none;
+appearance: none;
+}
+.progress-chart-wrap {
+background: var(–surface); border: 1px solid var(–border);
+border-radius: var(–radius); padding: 16px;
+}
+.chart-title { font-size: 13px; font-weight: 600; margin-bottom: 16px; color: var(–muted); }
+.chart-bars { display: flex; align-items: flex-end; gap: 8px; height: 120px; }
+.chart-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.chart-bar-wrap { flex: 1; display: flex; align-items: flex-end; width: 100%; }
+.chart-bar {
+width: 100%; border-radius: 6px 6px 0 0;
+background: var(–accent); min-height: 4px;
+transition: height .4s ease;
+position: relative;
+}
+.chart-bar.max { background: var(–accent2); }
+.chart-val { font-size: 10px; font-weight: 600; color: var(–text); }
+.chart-date { font-size: 10px; color: var(–muted); text-align: center; }
+.no-data { text-align: center; color: var(–muted); padding: 40px 0; font-size: 14px; }
+
+/* UTILS */
+.btn-primary {
+background: var(–accent); border: none; border-radius: 12px;
+padding: 14px 24px; color: #000; font-family: ‘DM Sans’, sans-serif;
+font-size: 14px; font-weight: 700; cursor: pointer;
+transition: opacity .2s; width: 100%;
+}
+.btn-primary:active { opacity: .8; }
+
+.save-bar {
+position: fixed; bottom: 65px; left: 0; right: 0;
+padding: 12px 16px; background: var(–bg);
+border-top: 1px solid var(–border);
+max-width: 480px; margin: 0 auto;
+transform: translateY(100%); transition: transform .3s;
+z-index: 90;
+}
+.save-bar.visible { transform: translateY(0); }
+
+.toast {
+position: fixed; bottom: 140px; left: 50%; transform: translateX(-50%) translateY(20px);
+background: var(–success); color: #000; border-radius: 50px;
+padding: 10px 20px; font-size: 13px; font-weight: 600;
+opacity: 0; transition: all .3s; pointer-events: none; z-index: 300;
+white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.empty-state { text-align: center; padding: 40px 20px; color: var(–muted); }
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-text { font-size: 14px; line-height: 1.6; }
+</style>
+
+</head>
+<body>
+
+<!-- SCREENS -->
+
+<div id="screen-treino" class="screen active">
+  <div class="page-header">
+    <div class="page-title">MEU <span>TREINO</span></div>
+    <div class="page-sub" id="today-label">Hoje</div>
+  </div>
+
+  <!-- TIMER CARD -->
+
+  <div class="timer-card">
+    <div class="timer-card-top">
+      <div class="timer-card-label">DESCANSO</div>
+      <div class="timer-presets">
+        <div class="timer-preset" onclick="setTimerDuration(30,this)">30s</div>
+        <div class="timer-preset sel" onclick="setTimerDuration(60,this)">60s</div>
+        <div class="timer-preset" onclick="setTimerDuration(90,this)">90s</div>
+        <div class="timer-preset" onclick="setTimerDuration(120,this)">2min</div>
+      </div>
+    </div>
+    <div class="timer-card-main">
+      <div class="timer-ring">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle class="timer-ring-bg" cx="40" cy="40" r="34" fill="none" stroke-width="5"/>
+          <circle class="timer-ring-progress" id="ring-progress" cx="40" cy="40" r="34" fill="none" stroke-width="5"
+            stroke-dasharray="213.6" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-ring-center">
+          <div class="timer-display" id="timer-display">01:00</div>
+        </div>
+      </div>
+      <div class="timer-btns">
+        <button class="timer-action primary" id="timer-toggle-btn" onclick="toggleTimer()">Iniciar</button>
+        <button class="timer-action" onclick="resetTimer()">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="days-scroll" id="days-scroll"></div>
+  <div id="exercises-list"></div>
+  <button class="add-exercise-btn" onclick="addExercise()">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+    Adicionar exercício
+  </button>
+  <div class="save-bar" id="save-bar">
+    <button class="btn-primary" onclick="saveWorkout()">💾 Salvar treino do dia</button>
+  </div>
+</div>
+
+<div id="screen-historico" class="screen">
+  <div class="page-header">
+    <div class="page-title">HISTÓ<span>RICO</span></div>
+    <div class="page-sub">Seus treinos salvos</div>
+  </div>
+  <div id="history-list"></div>
+</div>
+
+<div id="screen-evolucao" class="screen">
+  <div class="page-header">
+    <div class="page-title">EVOLU<span>ÇÃO</span></div>
+    <div class="page-sub">Carga por exercício</div>
+  </div>
+  <select class="progress-picker" id="progress-picker" onchange="renderProgress()">
+    <option value="">Selecione um exercício</option>
+  </select>
+  <div class="progress-chart-wrap" id="progress-chart">
+    <div class="no-data">Selecione um exercício para ver a evolução</div>
+  </div>
+</div>
+
+<!-- NAV -->
+
+<nav class="nav">
+  <button class="nav-btn active" id="nav-treino" onclick="showScreen('treino')">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 4v16M18 4v16M6 12h12M3 8h3M18 8h3M3 16h3M18 16h3"/></svg>
+    Treino
+  </button>
+  <button class="nav-btn" id="nav-historico" onclick="showScreen('historico')">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    Histórico
+  </button>
+  <button class="nav-btn" id="nav-evolucao" onclick="showScreen('evolucao')">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Evolução
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DAYS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const DAYS_FULL = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+
+let currentDay = new Date().getDay();
+let exercises = {};     // exercises[dayIndex] = [{id, name, sets:[{reps,weight,done}], open}]
+let history = [];       // [{date, day, dayLabel, exercises}]
+let timerDuration = 60;
+let timerRemaining = 60;
+let timerInterval = null;
+let timerRunning = false;
+let dirty = false;
+
+// ---- PERSISTENCE ----
+function save() {
+  localStorage.setItem('gym_exercises', JSON.stringify(exercises));
+  localStorage.setItem('gym_history', JSON.stringify(history));
+}
+function load() {
+  try { exercises = JSON.parse(localStorage.getItem('gym_exercises')) || {}; } catch { exercises = {}; }
+  try { history = JSON.parse(localStorage.getItem('gym_history')) || []; } catch { history = []; }
+}
+
+// ---- SCREEN NAV ----
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  if (name === 'historico') renderHistory();
+  if (name === 'evolucao') renderProgressPicker();
+}
+
+// ---- DAYS ----
+function renderDays() {
+  const wrap = document.getElementById('days-scroll');
+  wrap.innerHTML = '';
+  DAYS.forEach((d, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'day-chip' + (i === currentDay ? ' active' : '') + (exercises[i]?.length ? ' has-workout' : '');
+    chip.textContent = d;
+    chip.onclick = () => { currentDay = i; renderDays(); renderExercises(); };
+    wrap.appendChild(chip);
+  });
+  const sub = document.getElementById('today-label');
+  const today = new Date().getDay();
+  sub.textContent = currentDay === today ? `${DAYS_FULL[currentDay]} — Hoje` : DAYS_FULL[currentDay];
+}
+
+// ---- EXERCISES ----
+function getExercises() {
+  if (!exercises[currentDay]) exercises[currentDay] = [];
+  return exercises[currentDay];
+}
+
+function addExercise() {
+  const list = getExercises();
+  list.push({ id: Date.now(), name: '', sets: [{reps:'',weight:'',done:false}], open: true });
+  dirty = true;
+  renderExercises();
+  showSaveBar();
+}
+
+function deleteExercise(id) {
+  exercises[currentDay] = getExercises().filter(e => e.id !== id);
+  dirty = true;
+  renderExercises();
+  showSaveBar();
+}
+
+function toggleExercise(id) {
+  const ex = getExercises().find(e => e.id === id);
+  if (ex) ex.open = !ex.open;
+  renderExercises();
+}
+
+function addSet(id) {
+  const ex = getExercises().find(e => e.id === id);
+  if (ex) { ex.sets.push({reps:'',weight:'',done:false}); dirty = true; renderExercises(); showSaveBar(); }
+}
+
+function updateField(id, setIdx, field, val) {
+  const ex = getExercises().find(e => e.id === id);
+  if (ex) { ex.sets[setIdx][field] = val; dirty = true; showSaveBar(); }
+}
+
+function updateName(id, val) {
+  const ex = getExercises().find(e => e.id === id);
+  if (ex) { ex.name = val; dirty = true; showSaveBar(); }
+}
+
+function toggleSetDone(id, setIdx) {
+  const ex = getExercises().find(e => e.id === id);
+  if (ex) {
+    ex.sets[setIdx].done = !ex.sets[setIdx].done;
+    dirty = true;
+    renderExercises();
+    showSaveBar();
+    if (ex.sets[setIdx].done) { resetTimer(); startTimer(); }
+  }
+}
+
+function renderExercises() {
+  const list = document.getElementById('exercises-list');
+  list.innerHTML = '';
+  const exList = getExercises();
+  if (!exList.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🏋️</div><div class="empty-text">Nenhum exercício ainda.<br>Adicione seu primeiro exercício abaixo.</div></div>`;
+    return;
+  }
+  exList.forEach(ex => {
+    const card = document.createElement('div');
+    card.className = 'exercise-card';
+    const chevronClass = ex.open ? 'chevron open' : 'chevron';
+    let setsHTML = '';
+    if (ex.open) {
+      setsHTML = `<div class="sets-container">
+        <div class="sets-header"><div></div><div>Reps</div><div>Carga(kg)</div><div>Obs</div><div></div></div>`;
+      ex.sets.forEach((s, i) => {
+        setsHTML += `<div class="set-row">
+          <div class="set-num ${s.done ? 'done' : ''}">${i+1}</div>
+          <input class="set-input" type="number" inputmode="numeric" placeholder="—" value="${s.reps}"
+            onchange="updateField(${ex.id},${i},'reps',this.value)" oninput="updateField(${ex.id},${i},'reps',this.value)">
+          <input class="set-input" type="number" inputmode="decimal" placeholder="—" value="${s.weight}"
+            onchange="updateField(${ex.id},${i},'weight',this.value)" oninput="updateField(${ex.id},${i},'weight',this.value)">
+          <input class="set-input" type="text" placeholder="—" value="${s.obs||''}"
+            onchange="updateField(${ex.id},${i},'obs',this.value)" oninput="updateField(${ex.id},${i},'obs',this.value)">
+          <button class="set-done-btn ${s.done ? 'done' : ''}" onclick="toggleSetDone(${ex.id},${i})">✓</button>
+        </div>`;
+      });
+      setsHTML += `<button class="add-set-btn" onclick="addSet(${ex.id})">+ Série</button></div>`;
+      setsHTML += `<div class="exercise-actions">
+        <button class="del-exercise-btn" style="margin-left:auto" onclick="deleteExercise(${ex.id})">🗑 Remover</button>
+      </div>`;
+    }
+    card.innerHTML = `
+      <div class="exercise-header" onclick="toggleExercise(${ex.id})">
+        <input class="exercise-name-input" placeholder="Nome do exercício" value="${ex.name}"
+          onclick="event.stopPropagation()"
+          onchange="updateName(${ex.id},this.value)" oninput="updateName(${ex.id},this.value)">
+        <svg class="${chevronClass}" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      ${setsHTML}`;
+    list.appendChild(card);
+  });
+}
+
+// ---- SAVE ----
+function showSaveBar() {
+  document.getElementById('save-bar').classList.add('visible');
+}
+
+function saveWorkout() {
+  const exList = getExercises().filter(e => e.name.trim());
+  if (!exList.length) { showToast('Adicione pelo menos um exercício'); return; }
+  const entry = {
+    date: new Date().toLocaleDateString('pt-BR'),
+    day: currentDay,
+    dayLabel: DAYS_FULL[currentDay],
+    exercises: JSON.parse(JSON.stringify(exList))
+  };
+  // remove same day+date duplicate
+  history = history.filter(h => !(h.day === currentDay && h.date === entry.date));
+  history.unshift(entry);
+  save();
+  dirty = false;
+  document.getElementById('save-bar').classList.remove('visible');
+  showToast('Treino salvo! 💪');
+  renderDays();
+}
+
+// ---- HISTORY ----
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  list.innerHTML = '';
+  if (!history.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Nenhum treino salvo ainda.</div></div>`;
+    return;
+  }
+  history.forEach(entry => {
+    const card = document.createElement('div');
+    card.className = 'history-card';
+    let exHTML = '';
+    entry.exercises.forEach(ex => {
+      const doneSets = ex.sets.filter(s => s.done && s.weight);
+      const maxWeight = doneSets.length ? Math.max(...doneSets.map(s => parseFloat(s.weight)||0)) : 0;
+      let setsHTML = ex.sets.map((s,i) => {
+        const isPR = maxWeight > 0 && parseFloat(s.weight) === maxWeight && s.done;
+        return `<div class="history-set-badge ${isPR ? 'pr' : ''}">${s.reps||'—'} × ${s.weight||'—'}kg${isPR ? ' 🏆' : ''}</div>`;
+      }).join('');
+      exHTML += `<div class="history-exercise">
+        <div class="history-ex-name">${ex.name || 'Exercício'}</div>
+        <div class="history-sets">${setsHTML}</div>
+      </div>`;
+    });
+    card.innerHTML = `
+      <div class="history-date">${entry.date}</div>
+      <div class="history-day-label">${entry.dayLabel}</div>
+      ${exHTML}`;
+    list.appendChild(card);
+  });
+}
+
+// ---- PROGRESS ----
+function getAllExerciseNames() {
+  const names = new Set();
+  history.forEach(h => h.exercises.forEach(e => { if (e.name.trim()) names.add(e.name.trim()); }));
+  return [...names];
+}
+
+function renderProgressPicker() {
+  const picker = document.getElementById('progress-picker');
+  const names = getAllExerciseNames();
+  const current = picker.value;
+  picker.innerHTML = '<option value="">Selecione um exercício</option>';
+  names.forEach(n => {
+    const o = document.createElement('option');
+    o.value = n; o.textContent = n;
+    if (n === current) o.selected = true;
+    picker.appendChild(o);
+  });
+  if (current) renderProgress();
+}
+
+function renderProgress() {
+  const name = document.getElementById('progress-picker').value;
+  const wrap = document.getElementById('progress-chart');
+  if (!name) { wrap.innerHTML = '<div class="no-data">Selecione um exercício</div>'; return; }
+
+  const points = [];
+  [...history].reverse().forEach(entry => {
+    const ex = entry.exercises.find(e => e.name.trim() === name);
+    if (ex) {
+      const weights = ex.sets.filter(s => s.done && s.weight).map(s => parseFloat(s.weight)||0);
+      if (weights.length) {
+        points.push({ date: entry.date.slice(0,5), max: Math.max(...weights), avg: weights.reduce((a,b)=>a+b,0)/weights.length });
+      }
+    }
+  });
+
+  if (!points.length) { wrap.innerHTML = '<div class="no-data">Nenhum dado para este exercício</div>'; return; }
+
+  const maxVal = Math.max(...points.map(p => p.max));
+  const last7 = points.slice(-7);
+
+  let bars = last7.map((p,i) => {
+    const h = maxVal > 0 ? Math.round((p.max / maxVal) * 100) : 0;
+    const isMax = p.max === maxVal;
+    return `<div class="chart-col">
+      <div class="chart-val">${p.max}kg</div>
+      <div class="chart-bar-wrap"><div class="chart-bar ${isMax ? 'max' : ''}" style="height:${h}%"></div></div>
+      <div class="chart-date">${p.date}</div>
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML = `<div class="chart-title">${name} — Carga máxima por sessão</div>
+    <div class="chart-bars">${bars}</div>`;
+}
+
+// ---- TIMER ----
+function setTimerDuration(s, el) {
+  document.querySelectorAll('.timer-preset').forEach(p => p.classList.remove('sel'));
+  if (el) el.classList.add('sel');
+  timerDuration = s;
+  timerRemaining = s;
+  stopTimer();
+  updateTimerDisplay();
+}
+function toggleTimer() {
+  timerRunning ? stopTimer() : startTimer();
+}
+function startTimer() {
+  timerRunning = true;
+  document.getElementById('timer-toggle-btn').textContent = 'Pausar';
+  timerInterval = setInterval(() => {
+    timerRemaining--;
+    updateTimerDisplay();
+    if (timerRemaining <= 0) {
+      stopTimer();
+      document.getElementById('timer-display').className = 'timer-display done-color';
+      document.getElementById('timer-toggle-btn').textContent = 'Reiniciar';
+      try { const a = new AudioContext(); const o = a.createOscillator(); const g = a.createGain(); o.connect(g); g.connect(a.destination); o.frequency.value = 880; g.gain.setValueAtTime(0.3,a.currentTime); g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+0.5); o.start(); o.stop(a.currentTime+0.5); } catch(e){}
+    }
+  }, 1000);
+}
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  const btn = document.getElementById('timer-toggle-btn');
+  if (btn) btn.textContent = timerRemaining <= 0 ? 'Reiniciar' : 'Iniciar';
+}
+function resetTimer() {
+  stopTimer();
+  timerRemaining = timerDuration;
+  const disp = document.getElementById('timer-display');
+  if (disp) disp.className = 'timer-display';
+  const btn = document.getElementById('timer-toggle-btn');
+  if (btn) { btn.textContent = 'Iniciar'; btn.onclick = toggleTimer; }
+  updateTimerDisplay();
+}
+function updateTimerDisplay() {
+  const m = Math.floor(timerRemaining / 60);
+  const s = timerRemaining % 60;
+  const disp = document.getElementById('timer-display');
+  const btn = document.getElementById('timer-toggle-btn');
+  const ring = document.getElementById('ring-progress');
+  if (!disp || !ring) return;
+  disp.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const pct = timerRemaining / timerDuration;
+  const circ = 213.6;
+  ring.style.strokeDashoffset = circ * (1 - pct);
+  if (timerRemaining <= 0) {
+    disp.className = 'timer-display done-color';
+    if (btn) { btn.textContent = 'Reiniciar'; btn.onclick = () => { resetTimer(); startTimer(); }; }
+  } else if (timerRemaining <= 10) {
+    disp.className = 'timer-display warning';
+    if (btn) btn.onclick = toggleTimer;
+  } else {
+    disp.className = 'timer-display';
+    if (btn) btn.onclick = toggleTimer;
+  }
+}
+
+// ---- TOAST ----
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ---- INIT ----
+load();
+renderDays();
+renderExercises();
+updateTimerDisplay();
+</script>
+
+</body>
+</html>
